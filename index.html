@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Receipt Verify — Demo</title>
+<script src="https://unpkg.com/tweetnacl@1.0.3/nacl-fast.min.js"></script>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:40px;line-height:1.35}
+  .wrap{max-width:880px;margin:auto}
+  textarea{width:100%;min-height:140px;font-family:ui-monospace,Consolas,monospace;font-size:13px}
+  .row{display:grid;gap:18px;margin:18px 0}
+  .two{grid-template-columns:1fr 1fr}
+  .btn{padding:10px 14px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fff}
+  .btn:hover{background:#f7f7f7}
+  .ok{color:#0a7a29;font-weight:600}
+  .bad{color:#b00020;font-weight:600}
+  code{background:#f6f6f6;padding:2px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Receipt Verify — Demo</h1>
+  <p>This page verifies a tiny, signed receipt (Ed25519). We remove <code>sig</code>, canonically stringify the rest, and check the signature against a public key. Works offline in airplane mode.</p>
+
+  <h3>Public key (hex)</h3>
+  <p><code id="pub"></code></p>
+
+  <div class="row two">
+    <div>
+      <h3>Green receipt (write)</h3>
+      <textarea id="green"></textarea>
+      <button class="btn" onclick="verify('green','out1')">Verify Green</button>
+      <div id="out1"></div>
+    </div>
+    <div>
+      <h3>Amber receipt (revoke)</h3>
+      <textarea id="amber"></textarea>
+      <button class="btn" onclick="verify('amber','out2')">Verify Amber</button>
+      <div id="out2"></div>
+    </div>
+  </div>
+
+  <p>How it works: <em>stable sort</em> JSON keys deeply → <code>TextEncoder</code> bytes → <code>nacl.sign.detached.verify(message, sig, pub)</code>.</p>
+</div>
+
+<script>
+// ---- demo keys/receipts (pre-filled) ----
+const PUB_HEX = "0891c1199e83fa36fea9a44a3a45c42bbab8f693a8c3f45756e388e670c31a71";
+
+const GREEN = {
+  "rid":"7b04a5c1-18bb-479e-94f0-00b3c4b4bf59",
+  "when":1738790400,
+  "where":{"coarse":"device:server","host":"demo"},
+  "what":{"badge":"green","kind":"memory"},
+  "flags":["mem.write"],
+  "issuer":"openline-memory",
+  "sig":"e57d70664ffcd44c2e545914cbcbc47519ebcd0a49801f6ca09350ef50e1b14bf9d18bce64e91e4b2b2601c9ff76a62dc6326a2d6bfdbf78f75b820f0c3712c9"
+};
+
+const AMBER = {
+  "rid":"77c6fd0f-2181-4ad9-b72b-df30bbfdb9c6",
+  "when":1738790500,
+  "where":{"coarse":"device:server","host":"demo"},
+  "what":{"badge":"amber","kind":"memory"},
+  "flags":["mem.revoke"],
+  "revoke_of":"7b04a5c1-18bb-479e-94f0-00b3c4b4bf59",
+  "issuer":"openline-memory",
+  "sig":"de174e3cb6e56b2e6b5fd5dcde405e9e50d734a7017a260dc8dd651228249b2a97372d6b4fcb1fdfcd5aaee6b5328cc49a4d83e7e177a6dcf9de7850ee7aa617"
+};
+
+// ---- helpers ----
+const enc = new TextEncoder();
+const hexToBytes = (h)=>new Uint8Array(h.match(/.{1,2}/g).map(b=>parseInt(b,16)));
+
+// deep, lexicographic key sort (matches how the receipt was signed)
+function stable(obj){
+  if (Array.isArray(obj)) return obj.map(stable);
+  if (obj && typeof obj === "object"){
+    const o={}; Object.keys(obj).sort().forEach(k=>o[k]=stable(obj[k])); return o;
+  }
+  return obj;
+}
+function stableStr(obj){ return JSON.stringify(stable(obj)); }
+
+function verify(textareaId, outId){
+  const el = document.getElementById(textareaId);
+  const out = document.getElementById(outId);
+  try{
+    const r = JSON.parse(el.value);
+    const sigHex = r.sig; if(!sigHex) throw new Error("missing sig");
+    delete r.sig; // sign/verify over the rest
+    const msg = enc.encode(stableStr(r));
+    const sig = hexToBytes(sigHex);
+    const pub = hexToBytes(PUB_HEX);
+    const ok = nacl.sign.detached.verify(msg, sig, pub);
+    out.innerHTML = ok ? `<div class="ok">✅ Signature valid</div>` :
+                         `<div class="bad">❌ Invalid signature</div>`;
+  }catch(e){
+    out.innerHTML = `<div class="bad">⚠️ ${e.message}</div>`;
+  }
+}
+
+// prefill UI
+document.getElementById("pub").textContent = PUB_HEX;
+document.getElementById("green").value = JSON.stringify(GREEN, null, 2);
+document.getElementById("amber").value = JSON.stringify(AMBER, null, 2);
+</script>
+</body>
+</html>
