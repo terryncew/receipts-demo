@@ -1,139 +1,217 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Receipt Verify — Demo</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <main class="wrap">
-    <header class="hero">
-      <h1>Receipt Verify — Demo</h1>
-      <p>This page verifies a tiny, signed receipt (Ed25519). We remove <code>sig</code>, canonically stringify the rest, and check the signature against a public key. Works offline.</p>
-    </header>
+<main class="wrap">
+  <header class="hero">
+    <h1>Receipt Verify — Demo</h1>
+    <p class="muted">
+      Tap <b>Verify</b> to check a signed receipt (Ed25519). We remove <code>sig</code>, canonicalize the JSON,
+      and verify the signature against the public key. Works offline.
+    </p>
+    <ol class="steps">
+      <li>Tap <b>Verify</b> on Green and Amber — they should show <span class="ok">VALID</span>.</li>
+      <li>Use <b>Copy</b> or <b>Download</b> to take the receipt elsewhere.</li>
+      <li>Paste any receipt in the box at the bottom and verify it too.</li>
+    </ol>
+  </header>
 
-    <section class="card">
-      <label class="label">Public key (hex)</label>
-      <div class="row copyrow">
-        <input id="pubHex" class="input mono" readonly value="0891c1199e83fa36fea9a44a3a45c42bbab8f693a8c3..." />
-        <button class="btn ghost" onclick="copyPub()">Copy</button>
+  <section class="card">
+    <label class="label">Public key (hex)</label>
+    <div class="row gap">
+      <input id="pubHex" class="input mono" readonly value="(generating…)"/>
+      <button class="btn ghost" onclick="copyText('pubHex')">Copy key</button>
+    </div>
+    <p class="fine">For production, fetch from <code>/.well-known/receipts.json</code> and cache for airplane-mode verify.</p>
+  </section>
+
+  <!-- RECEIPT CARDS -->
+  <section class="grid">
+    <!-- GREEN -->
+    <article class="card">
+      <h3>Green <span class="pill green">write</span></h3>
+
+      <!-- Human summary -->
+      <div class="receiptView" id="greenView"></div>
+
+      <!-- Buttons: big, spaced, fat-finger friendly -->
+      <div class="btnrow">
+        <button class="btn primary" onclick="verifyFromScript('greenJson','greenResult')">Verify</button>
+        <button class="btn" onclick="copyScript('greenJson')">Copy</button>
+        <button class="btn" onclick="downloadScript('greenJson','green-receipt.json')">Download</button>
       </div>
-      <p class="fine">Tip: this demo uses a dev key. In production, fetch from <code>/.well-known/receipts.json</code> and cache for airplane-mode verify.</p>
-    </section>
 
-    <section class="grid">
-      <div class="card">
-        <h3>Green receipt <span class="pill green">write</span></h3>
-        <pre class="pre"><code id="greenJson">{
-  "rid": "7b04a5c1-18bb-479e-94f0-00b3c4b4bf59",
-  "when": 1738790400,
-  "where": {"host": "demo", "coarse": "device:server"},
-  "what": {"badge": "green", "kind": "memory"},
-  "flags": ["mem.write"],
-  "kid": "dev-1",
-  "sig": "8f…deadbeef"
-}</code></pre>
-        <div class="row">
-          <button class="btn" onclick="verify('greenJson','greenResult')">Verify Green</button>
-          <div id="greenResult" class="result"></div>
-        </div>
-        <button class="btn ghost small" onclick="copy('greenJson')">Copy JSON</button>
+      <!-- Result -->
+      <div id="greenResult" class="result"></div>
+
+      <!-- Raw JSON (hidden by default) -->
+      <details class="raw">
+        <summary>Show JSON</summary>
+        <pre class="pre"><code class="mono" id="greenPretty"></code></pre>
+      </details>
+      <script id="greenJson" type="application/json">{}</script>
+    </article>
+
+    <!-- AMBER -->
+    <article class="card">
+      <h3>Amber <span class="pill amber">revoke</span></h3>
+
+      <div class="receiptView" id="amberView"></div>
+
+      <div class="btnrow">
+        <button class="btn primary" onclick="verifyFromScript('amberJson','amberResult')">Verify</button>
+        <button class="btn" onclick="copyScript('amberJson')">Copy</button>
+        <button class="btn" onclick="downloadScript('amberJson','amber-receipt.json')">Download</button>
       </div>
 
-      <div class="card">
-        <h3>Amber receipt <span class="pill amber">revoke</span></h3>
-        <pre class="pre"><code id="amberJson">{
-  "rid": "77c6fd0f-2181-4ad9-b72b-df30bbfdb9c6",
-  "when": 1738790500,
-  "where": {"host": "demo", "coarse": "device:server"},
-  "what": {"badge": "amber", "kind": "memory"},
-  "flags": ["mem.revoke"],
-  "revoke_of": "7b04a5c1-18bb-479e-94f0-00b3c4b4bf59",
-  "kid": "dev-1",
-  "sig": "9a…c0ffee"
-}</code></pre>
-        <div class="row">
-          <button class="btn" onclick="verify('amberJson','amberResult')">Verify Amber</button>
-          <div id="amberResult" class="result"></div>
-        </div>
-        <button class="btn ghost small" onclick="copy('amberJson')">Copy JSON</button>
-      </div>
-    </section>
+      <div id="amberResult" class="result"></div>
 
-    <section class="card">
-      <h3>Paste any receipt</h3>
-      <textarea id="pasteArea" class="input mono" rows="8" placeholder='Paste a receipt JSON here…'></textarea>
-      <div class="row">
-        <button class="btn" onclick="verifyPaste()">Verify Pasted</button>
-        <div id="pasteResult" class="result"></div>
-      </div>
-    </section>
+      <details class="raw">
+        <summary>Show JSON</summary>
+        <pre class="pre"><code class="mono" id="amberPretty"></code></pre>
+      </details>
+      <script id="amberJson" type="application/json">{}</script>
+    </article>
+  </section>
 
-    <section class="card">
-      <h3>How it works</h3>
-      <ol class="steps">
-        <li>Stable-sort JSON keys deeply (JCS-style), remove <code>sig</code>.</li>
-        <li>Encode to bytes (<code>TextEncoder</code>).</li>
-        <li>Verify detached signature with Ed25519 and the public key.</li>
-      </ol>
-      <p class="fine">Fields shown: <code>rid</code>, <code>when</code>, <code>where</code>, <code>what.badge</code>, <code>flags</code>, plus <code>kid</code> and optional <code>revoke_of</code>.</p>
-    </section>
+  <!-- PASTE-ANY RECEIPT -->
+  <section class="card">
+    <h3>Paste any receipt</h3>
+    <textarea id="pasteArea" class="input mono" rows="8" placeholder='Paste JSON here…'></textarea>
+    <div class="btnrow">
+      <button class="btn primary" onclick="verifyText('pasteArea','pasteResult')">Verify</button>
+      <button class="btn" onclick="downloadText('pasteArea','pasted-receipt.json')">Download</button>
+      <button class="btn" onclick="copyText('pasteArea')">Copy</button>
+    </div>
+    <div id="pasteResult" class="result"></div>
+  </section>
 
-    <footer class="foot">
-      <div>What we never collect in this demo: prompts, chats, photos, or PII.</div>
-      <div class="muted">© 2025</div>
-    </footer>
-  </main>
+  <section class="card">
+    <h3>How it works</h3>
+    <ol class="steps">
+      <li>Stable-sort JSON keys deeply (JCS-style), remove <code>sig</code>.</li>
+      <li>Encode to bytes with <code>TextEncoder</code>.</li>
+      <li>Verify detached signature using Ed25519 and the public key.</li>
+    </ol>
+    <p class="fine">Fields shown: <code>rid</code>, <code>when</code>, <code>where</code>, <code>what.badge</code>, <code>flags</code>, <code>kid</code>, optional <code>revoke_of</code>.</p>
+  </section>
 
-  <!-- Keep your existing verify logic if you have it.
-       Otherwise drop in a tiny helper script: -->
-  <script>
-    // --- helpers ---
-    const $ = id => document.getElementById(id);
-    const copy = id => navigator.clipboard.writeText($(id).innerText.trim());
-    const copyPub = () => navigator.clipboard.writeText($('pubHex').value);
+  <footer class="foot">
+    <div>We never collect prompts, chats, photos, or PII in this demo.</div>
+    <div class="muted">© 2025</div>
+  </footer>
+</main>
 
-    // Hex → Uint8Array
-    const hexToU8 = (h) => new Uint8Array((h.match(/.{1,2}/g)||[]).map(b=>parseInt(b,16)));
+<!-- tweetnacl (for Ed25519) -->
+<script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl.min.js"></script>
+<script>
+  // ---------- helpers ----------
+  const $ = id => document.getElementById(id);
+  const hexToU8 = h => new Uint8Array((h.match(/.{1,2}/g)||[]).map(b=>parseInt(b,16)));
+  const u8ToHex = u8 => [...u8].map(b=>b.toString(16).padStart(2,'0')).join('');
+  const canon = v => Array.isArray(v)
+      ? `[${v.map(canon).join(',')}]`
+      : (v && typeof v==='object')
+        ? `{${Object.keys(v).sort().map(k=>`${JSON.stringify(k)}:${canon(v[k])}`).join(',')}}`
+        : JSON.stringify(v);
 
-    // Canonical stringify (stable key order, deep)
-    const canon = (v) => {
-      if (Array.isArray(v)) return `[${v.map(canon).join(',')}]`;
-      if (v && typeof v === 'object') {
-        return `{${Object.keys(v).sort().map(k=>`${JSON.stringify(k)}:${canon(v[k])}`).join(',')}}`;
-      }
-      return JSON.stringify(v);
+  function copyText(id){ const el=$(id); navigator.clipboard.writeText(el.value ?? el.innerText); }
+  function copyScript(id){ navigator.clipboard.writeText($(id).textContent.trim()); }
+  function download(filename, text){
+    const blob = new Blob([text], {type:'application/json'});
+    const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  }
+  function downloadScript(id, name){ download(name, $(id).textContent.trim()); }
+  function downloadText(id, name){ download(name, $(id).value.trim()); }
+
+  function verifyFromScript(scriptId, resultId){
+    verifyJson($(scriptId).textContent.trim(), resultId);
+  }
+  function verifyText(textId, resultId){
+    verifyJson($(textId).value.trim(), resultId);
+  }
+  function verifyJson(txt, resultId){
+    try{
+      const obj = JSON.parse(txt);
+      const sigHex = obj.sig || '';
+      delete obj.sig;
+      const msg = new TextEncoder().encode(canon(obj));
+      const sig = hexToU8(sigHex);
+      const pub = hexToU8($('pubHex').value.replace(/[^0-9a-f]/gi,''));
+      const ok = nacl.sign.detached.verify(msg, sig, pub);
+      $(resultId).innerHTML = ok ? '<span class="ok">VALID</span>' : '<span class="bad">INVALID</span>';
+    }catch(e){
+      $(resultId).innerHTML = '<span class="bad">PARSE ERROR</span>';
+    }
+  }
+
+  // ---------- demo receipts with real signatures ----------
+  (function init(){
+    // Generate a fresh demo keypair so the example receipts actually verify
+    const kp = nacl.sign.keyPair();
+    const pubHex = u8ToHex(kp.publicKey);
+    $('pubHex').value = pubHex;
+
+    const now = Math.floor(Date.now()/1000);
+
+    const green = {
+      rid: crypto.randomUUID(),
+      when: now,
+      where: {host:"demo", coarse:"device:server"},
+      what: {badge:"green", kind:"memory"},
+      flags: ["mem.write"],
+      kid: "dev-1"
+    };
+    const amber = {
+      rid: crypto.randomUUID(),
+      when: now+60,
+      where: {host:"demo", coarse:"device:server"},
+      what: {badge:"amber", kind:"memory"},
+      flags: ["mem.revoke"],
+      revoke_of: green.rid,
+      kid: "dev-1"
     };
 
-    // NaCl verify (expects window.nacl present). If you already include tweetnacl, this just works.
-    function verify(jsonId, resultId){
-      runVerify($(jsonId).innerText, resultId);
+    // Sign (detached) the canonicalized JSON-without-sig
+    function signReceipt(r){
+      const m = new TextEncoder().encode(canon(r));
+      const sig = nacl.sign.detached(m, kp.secretKey);
+      return {...r, sig: u8ToHex(sig)};
     }
-    function verifyPaste(){
-      runVerify($('pasteArea').value, 'pasteResult');
+
+    const greenSigned = signReceipt(green);
+    const amberSigned = signReceipt(amber);
+
+    // Store exact JSON in <script type="application/json"> for machine use
+    $('greenJson').textContent = JSON.stringify(greenSigned);
+    $('amberJson').textContent = JSON.stringify(amberSigned);
+
+    // Pretty JSON (for Show JSON)
+    $('greenPretty').innerText = JSON.stringify(greenSigned, null, 2);
+    $('amberPretty').innerText = JSON.stringify(amberSigned, null, 2);
+
+    // Human receipt view cards
+    function mkView(r, elId){
+      const dt = new Date(r.when*1000).toLocaleString();
+      $(elId).innerHTML = `
+        <div class="kv"><span>RID</span><code class="mono cut">${r.rid}</code></div>
+        <div class="kv"><span>When</span><span>${dt}</span></div>
+        <div class="kv"><span>Where</span><span>${r.where.host} · ${r.where.coarse}</span></div>
+        <div class="kv"><span>Badge</span><span class="pill ${r.what.badge==='green'?'green':'amber'}">${r.what.badge}</span></div>
+        <div class="kv"><span>Flags</span><span>${r.flags.join(', ')}</span></div>
+        ${r.revoke_of ? `<div class="kv"><span>Revokes</span><code class="mono cut">${r.revoke_of}</code></div>`:''}
+        <div class="kv"><span>Key</span><span class="mono cut">${r.kid}</span></div>
+      `;
     }
-    function runVerify(txt, resultId){
-      try{
-        const obj = JSON.parse(txt);
-        const sigHex = obj.sig || '';
-        const kid = obj.kid || 'unknown';
-        delete obj.sig;
-        const msg = new TextEncoder().encode(canon(obj));
-        const sig = hexToU8(sigHex);
-        const pubHex = $('pubHex').value.trim();
-        const pub = hexToU8(pubHex.replace(/[^0-9a-f]/gi,''));
-        const ok = window.nacl && window.nacl.sign.detached.verify(msg, sig, pub);
-        $(resultId).innerHTML = ok
-          ? `<span class="ok">VALID</span> <span class="muted">kid=${kid}</span>`
-          : `<span class="bad">INVALID</span>`;
-      }catch(e){
-        $(resultId).innerHTML = `<span class="bad">PARSE ERROR</span>`;
-      }
-    }
-  </script>
-  <!-- If you don’t already include NaCl, add this one line (OK for demo).
-       For true offline, download it as tweetnacl.min.js and reference locally. -->
-  <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl.min.js" integrity="sha384-c0G6T1z5Vh0kq0y2xSg8bH8aZkzK5m2Q2YkM5PdzmG8QWk4H3p4yfxN1e5QdZ0wV" crossorigin="anonymous"></script>
+    mkView(greenSigned,'greenView');
+    mkView(amberSigned,'amberView');
+  })();
+</script>
 </body>
 </html>
