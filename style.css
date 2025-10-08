@@ -1,32 +1,41 @@
 :root{
-  --bg:#0b0b0c; --fg:#f5f6f7; --muted:#9aa0a6; --card:#151518; --border:#242428;
+  --bg:#0b0b0c; --fg:#f5f6f7; --muted:#a1a7af;
+  --card:#151518; --border:#26262b;
   --green:#18c37e; --amber:#f6b73c; --bad:#ff5c6a; --ok:#18c37e;
 }
 *{box-sizing:border-box}
-html,body{background:var(--bg); color:var(--fg); margin:0; font:16px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial}
-.wrap{max-width:760px; margin:0 auto; padding:24px 20px 40px}
-.hero h1{font-size:clamp(28px,4.5vw,44px); line-height:1.1; margin:8px 0 10px}
-.hero p{color:var(--muted); margin:0 0 12px}
-.label{display:block; font-weight:600; margin-bottom:6px}
-.card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 14px 12px; margin:14px 0}
-.grid{display:grid; gap:14px}
-@media (min-width:680px){ .grid{grid-template-columns:1fr 1fr} }
-.row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-.copyrow .input{flex:1 1 auto}
-.input{width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#0f0f12; color:var(--fg)}
-.mono{font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,Monaco,monospace}
-.pre{background:#0f0f12; border:1px solid var(--border); border-radius:12px; padding:10px; max-height:220px; overflow:auto}
-.pre code{font-size:12.5px; line-height:1.4; white-space:pre; word-wrap:normal}
-.btn{appearance:none; border:0; border-radius:12px; padding:10px 14px; font-weight:600; cursor:pointer; background:#2a2a30; color:var(--fg)}
+html,body{margin:0;background:var(--bg);color:var(--fg);
+  font:16px/1.55 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial}
+.wrap{max-width:760px;margin:0 auto;padding:22px 18px 40px}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.12;margin:6px 0 10px}
+h3{margin:0 0 10px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,Monaco,monospace}
+.muted{color:var(--muted)}
+.hero .steps{margin:10px 0 0 18px}
+.label{display:block;font-weight:700;margin-bottom:6px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin:14px 0}
+.grid{display:grid;gap:14px}
+@media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
+.input{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0f0f12;color:var(--fg)}
+.pre{background:#0f0f12;border:1px solid var(--border);border-radius:12px;padding:10px;max-height:260px;overflow:auto}
+.fine{color:var(--muted);font-size:13px;margin-top:8px}
+.ok{color:var(--ok);font-weight:800}
+.bad{color:var(--bad);font-weight:800}
+.pill{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--border)}
+.pill.green{background:rgba(24,195,126,.12);color:#a3f3d2}
+.pill.amber{background:rgba(246,183,60,.12);color:#ffe0a6}
+.row.gap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{appearance:none;border:1px solid var(--border);background:#25252b;color:var(--fg);
+  border-radius:14px;padding:14px 18px;font-weight:700;cursor:pointer}
 .btn:hover{filter:brightness(1.06)}
-.btn.ghost{background:transparent; border:1px solid var(--border)}
-.btn.small{padding:7px 10px; font-size:13px}
-.pill{font-size:12px; padding:2px 8px; border-radius:999px; border:1px solid var(--border)}
-.pill.green{background:rgba(24,195,126,.12); color:#8ef1c7}
-.pill.amber{background:rgba(246,183,60,.12); color:#f6d594}
-.result{min-width:120px}
-.ok{color:var(--ok); font-weight:700}
-.bad{color:var(--bad); font-weight:700}
-.fine{color:var(--muted); font-size:13px; margin-top:8px}
-.steps{margin:0 0 6px 18px}
-.foot{display:flex; justify-content:space-between; gap:10px; color:var(--muted); font-size:13px; margin-top:18px}
+.btn.primary{background:#2e2e36}
+.btn.ghost{background:transparent}
+.btnrow{display:flex;gap:12px;flex-wrap:wrap;margin:10px 0 6px}
+.result{min-height:28px;font-weight:700}
+.raw summary{cursor:pointer;margin-top:6px;color:var(--muted)}
+.receiptView{display:grid;grid-template-columns:100px 1fr;gap:6px 10px;
+  border:1px dashed var(--border);border-radius:12px;padding:10px;background:#101014}
+.receiptView .kv{display:contents}
+.receiptView .kv>span:first-child{color:var(--muted)}
+.cut{max-width:100%;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.foot{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:13px;margin-top:18px}
